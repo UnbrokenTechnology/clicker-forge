@@ -5,14 +5,28 @@
 const UI = (function() {
     'use strict';
 
+    // Constants for repair timing and progress
+    const REPAIR_BASE_TIME_MS = 3000; // 3 seconds base repair time
+    const REPAIR_CLICK_BOOST_MS = 100; // Each click adds 100ms worth of progress
+    const REPAIR_UPDATE_INTERVAL_MS = 50; // Update progress every 50ms
+
     // DOM element cache
     let elements = {};
+    
+    // Forge state tracking - only tracks which weapon is being worked on
+    let forgeState = {
+        currentWeaponId: null, // Track which weapon is being repaired
+        progressInterval: null
+    };
 
     // Cache DOM elements
     function cacheElements() {
         elements = {
             forgeIcon: document.getElementById('forgeIcon'),
             forgeStatus: document.getElementById('forgeStatus'),
+            forgeProgressContainer: document.getElementById('forgeProgressContainer'),
+            forgeProgressFill: document.getElementById('forgeProgressFill'),
+            forgeProgressText: document.getElementById('forgeProgressText'),
             weaponToRepair: document.getElementById('weaponToRepair'),
             searchButton: document.getElementById('searchButton'),
             loadingBarContainer: document.getElementById('loadingBarContainer'),
@@ -135,33 +149,109 @@ const UI = (function() {
             return;
         }
 
-        // Perform repair animation
-        elements.forgeIcon.classList.add('repairing');
-        elements.forgeStatus.textContent = 'Repairing...';
+        // If already repairing this weapon, speed up the process with clicks
+        if (forgeState.currentWeaponId === selectedWeapon.id) {
+            const currentProgress = GameState.getWeaponProgress(selectedWeapon.id);
+            // Cap progress to not exceed base repair time
+            const newProgress = Math.min(currentProgress + REPAIR_CLICK_BOOST_MS, REPAIR_BASE_TIME_MS);
+            GameState.updateWeaponProgress(selectedWeapon.id, newProgress);
+            
+            // Only add animation if not already animating
+            if (!elements.forgeIcon.classList.contains('hammer-pulse')) {
+                elements.forgeIcon.classList.add('hammer-pulse');
+                setTimeout(() => {
+                    elements.forgeIcon.classList.remove('hammer-pulse');
+                }, 200);
+            }
+            updateForgeProgress(selectedWeapon.id);
+            return;
+        }
+
+        // If repairing a different weapon, ignore the click
+        if (forgeState.currentWeaponId !== null) {
+            return;
+        }
+
+        // Start the repair process
+        startRepair(selectedWeapon);
+    }
+
+    // Start the repair process
+    function startRepair(weapon) {
+        forgeState.currentWeaponId = weapon.id;
+        
+        // Initialize weapon progress if not already set
+        if (!weapon.repairProgress) {
+            GameState.updateWeaponProgress(weapon.id, 0);
+        }
+        
+        // Show progress bar
+        elements.forgeProgressContainer.style.display = 'block';
+        elements.forgeProgressFill.style.width = '0%';
+        elements.forgeStatus.textContent = 'Forging in progress...';
         elements.forgeStatus.style.color = '#f39c12';
+        elements.forgeIcon.classList.add('repairing');
 
+        // Update progress at regular intervals
+        forgeState.progressInterval = setInterval(() => {
+            const currentProgress = GameState.getWeaponProgress(weapon.id);
+            const newProgress = currentProgress + REPAIR_UPDATE_INTERVAL_MS;
+            GameState.updateWeaponProgress(weapon.id, newProgress);
+            updateForgeProgress(weapon.id);
+
+            if (newProgress >= REPAIR_BASE_TIME_MS) {
+                completeRepair(weapon);
+            }
+        }, REPAIR_UPDATE_INTERVAL_MS);
+    }
+
+    // Update forge progress bar
+    function updateForgeProgress(weaponId) {
+        const progress = GameState.getWeaponProgress(weaponId);
+        const progressPercent = Math.min((progress / REPAIR_BASE_TIME_MS) * 100, 100);
+        elements.forgeProgressFill.style.width = progressPercent + '%';
+        
+        // Update ARIA attribute for accessibility
+        const progressBar = elements.forgeProgressFill.parentElement;
+        if (progressBar) {
+            progressBar.setAttribute('aria-valuenow', Math.round(progressPercent));
+        }
+    }
+
+    // Complete the repair process
+    function completeRepair(weapon) {
+        // Clear the interval
+        if (forgeState.progressInterval) {
+            clearInterval(forgeState.progressInterval);
+            forgeState.progressInterval = null;
+        }
+
+        // Reset forge state
+        forgeState.currentWeaponId = null;
+
+        // Hide progress bar
+        elements.forgeProgressContainer.style.display = 'none';
+        elements.forgeIcon.classList.remove('repairing');
+        
+        // Complete the repair
+        GameState.addToInventory(weapon.type);
+        GameState.removeBrokenWeapon(weapon.id);
+        
+        elements.forgeStatus.textContent = 'Repair complete!';
+        elements.forgeStatus.style.color = '#27ae60';
+        elements.forgeIcon.classList.add('success-animation');
+        
         setTimeout(() => {
-            elements.forgeIcon.classList.remove('repairing');
-            
-            // Complete the repair
-            GameState.addToInventory(selectedWeapon.type);
-            GameState.removeBrokenWeapon(selectedWeapon.id);
-            
-            elements.forgeStatus.textContent = 'Repair complete!';
+            elements.forgeIcon.classList.remove('success-animation');
+            elements.forgeStatus.textContent = 'Ready to repair';
             elements.forgeStatus.style.color = '#27ae60';
-            elements.forgeIcon.classList.add('success-animation');
-            
-            setTimeout(() => {
-                elements.forgeIcon.classList.remove('success-animation');
-                elements.forgeStatus.textContent = 'Ready to repair';
-            }, 1000);
+        }, 1500);
 
-            // Update all UI
-            updateStats();
-            renderWeaponToRepair(null);
-            renderBrokenWeaponsList(GameState.getBrokenWeapons());
-            renderInventory(GameState.getInventory());
-        }, 1000);
+        // Update all UI
+        updateStats();
+        renderWeaponToRepair(null);
+        renderBrokenWeaponsList(GameState.getBrokenWeapons());
+        renderInventory(GameState.getInventory());
     }
 
     // Handle search button click
