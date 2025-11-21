@@ -13,12 +13,10 @@ const UI = (function() {
     // DOM element cache
     let elements = {};
     
-    // Repair state tracking
-    let repairState = {
-        isRepairing: false,
-        progress: 0,
-        progressInterval: null,
-        weaponId: null // Track which weapon is being repaired
+    // Forge state tracking - only tracks which weapon is being worked on
+    let forgeState = {
+        currentWeaponId: null, // Track which weapon is being repaired
+        progressInterval: null
     };
 
     // Cache DOM elements
@@ -151,10 +149,12 @@ const UI = (function() {
             return;
         }
 
-        // If already repairing, speed up the process with clicks
-        if (repairState.isRepairing) {
+        // If already repairing this weapon, speed up the process with clicks
+        if (forgeState.currentWeaponId === selectedWeapon.id) {
+            const currentProgress = GameState.getWeaponProgress(selectedWeapon.id);
             // Cap progress to not exceed base repair time
-            repairState.progress = Math.min(repairState.progress + REPAIR_CLICK_BOOST_MS, REPAIR_BASE_TIME_MS);
+            const newProgress = Math.min(currentProgress + REPAIR_CLICK_BOOST_MS, REPAIR_BASE_TIME_MS);
+            GameState.updateWeaponProgress(selectedWeapon.id, newProgress);
             
             // Only add animation if not already animating
             if (!elements.forgeIcon.classList.contains('hammer-pulse')) {
@@ -163,7 +163,12 @@ const UI = (function() {
                     elements.forgeIcon.classList.remove('hammer-pulse');
                 }, 200);
             }
-            updateForgeProgress();
+            updateForgeProgress(selectedWeapon.id);
+            return;
+        }
+
+        // If repairing a different weapon, ignore the click
+        if (forgeState.currentWeaponId !== null) {
             return;
         }
 
@@ -173,9 +178,12 @@ const UI = (function() {
 
     // Start the repair process
     function startRepair(weapon) {
-        repairState.isRepairing = true;
-        repairState.progress = 0;
-        repairState.weaponId = weapon.id; // Track which weapon is being repaired
+        forgeState.currentWeaponId = weapon.id;
+        
+        // Initialize weapon progress if not already set
+        if (!weapon.repairProgress) {
+            GameState.updateWeaponProgress(weapon.id, 0);
+        }
         
         // Show progress bar
         elements.forgeProgressContainer.style.display = 'block';
@@ -185,19 +193,22 @@ const UI = (function() {
         elements.forgeIcon.classList.add('repairing');
 
         // Update progress at regular intervals
-        repairState.progressInterval = setInterval(() => {
-            repairState.progress += REPAIR_UPDATE_INTERVAL_MS;
-            updateForgeProgress();
+        forgeState.progressInterval = setInterval(() => {
+            const currentProgress = GameState.getWeaponProgress(weapon.id);
+            const newProgress = currentProgress + REPAIR_UPDATE_INTERVAL_MS;
+            GameState.updateWeaponProgress(weapon.id, newProgress);
+            updateForgeProgress(weapon.id);
 
-            if (repairState.progress >= REPAIR_BASE_TIME_MS) {
+            if (newProgress >= REPAIR_BASE_TIME_MS) {
                 completeRepair(weapon);
             }
         }, REPAIR_UPDATE_INTERVAL_MS);
     }
 
     // Update forge progress bar
-    function updateForgeProgress() {
-        const progressPercent = Math.min((repairState.progress / REPAIR_BASE_TIME_MS) * 100, 100);
+    function updateForgeProgress(weaponId) {
+        const progress = GameState.getWeaponProgress(weaponId);
+        const progressPercent = Math.min((progress / REPAIR_BASE_TIME_MS) * 100, 100);
         elements.forgeProgressFill.style.width = progressPercent + '%';
         
         // Update ARIA attribute for accessibility
@@ -210,15 +221,13 @@ const UI = (function() {
     // Complete the repair process
     function completeRepair(weapon) {
         // Clear the interval
-        if (repairState.progressInterval) {
-            clearInterval(repairState.progressInterval);
-            repairState.progressInterval = null;
+        if (forgeState.progressInterval) {
+            clearInterval(forgeState.progressInterval);
+            forgeState.progressInterval = null;
         }
 
-        // Reset repair state
-        repairState.isRepairing = false;
-        repairState.progress = 0;
-        repairState.weaponId = null;
+        // Reset forge state
+        forgeState.currentWeaponId = null;
 
         // Hide progress bar
         elements.forgeProgressContainer.style.display = 'none';

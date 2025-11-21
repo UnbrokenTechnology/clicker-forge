@@ -50,6 +50,10 @@ const GameState = (function() {
 
         // Add a broken weapon to the list
         addBrokenWeapon: function(weapon) {
+            // Initialize repair progress for the weapon
+            if (!weapon.repairProgress) {
+                weapon.repairProgress = 0;
+            }
             state.brokenWeapons.push(weapon);
             saveState();
         },
@@ -66,6 +70,26 @@ const GameState = (function() {
         // Get all broken weapons
         getBrokenWeapons: function() {
             return [...state.brokenWeapons];
+        },
+
+        // Get a specific weapon by ID
+        getWeaponById: function(weaponId) {
+            return state.brokenWeapons.find(w => w.id === weaponId);
+        },
+
+        // Update weapon repair progress
+        updateWeaponProgress: function(weaponId, progress) {
+            const weapon = state.brokenWeapons.find(w => w.id === weaponId);
+            if (weapon) {
+                weapon.repairProgress = progress;
+                saveState();
+            }
+        },
+
+        // Get weapon repair progress
+        getWeaponProgress: function(weaponId) {
+            const weapon = state.brokenWeapons.find(w => w.id === weaponId);
+            return weapon ? weapon.repairProgress : 0;
         },
 
         // Select a weapon for repair
