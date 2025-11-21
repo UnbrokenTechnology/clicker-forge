@@ -53,6 +53,10 @@ The code should be self-documenting. When adding new modules, files, or classes,
 - Prefer state managed in a clean way where any persistent data has one entry point
 - Avoid caching whenever possible
 - Keep state modifications explicit and predictable
+- **Minimize unnecessary state management**: Before adding new state (flags, booleans, counters), consider if the value can be calculated from existing data
+- **Prefer calculated values over flags**: If a value can be derived from other state, calculate it instead of storing it separately
+- **Single source of truth**: Each piece of data should have one authoritative source; avoid duplicating state that needs to be kept in sync
+- **Easy to synchronize**: Solutions should be simple to keep consistent; complex state dependencies are harder to maintain and more error-prone
 
 ### 4. Refactoring Approach
 
@@ -156,6 +160,23 @@ The code should be self-documenting. When adding new modules, files, or classes,
 - Integrate with existing `GameState` for purchases
 - Follow existing UI patterns in the HTML/CSS
 - Keep the API consistent with other modules
+
+### Scenario 4: Managing Animation State
+**Effective Approach - Calculated over Flags:**
+Instead of adding a flag like `isAnimating: true/false`, check if the animation class exists:
+```javascript
+// Calculate the state instead of storing it
+if (!element.classList.contains('hammer-pulse')) {
+    element.classList.add('hammer-pulse');
+    setTimeout(() => element.classList.remove('hammer-pulse'), 200);
+}
+```
+
+This approach:
+- Avoids an extra boolean flag that needs synchronization
+- Uses the DOM as the single source of truth for animation state
+- Reduces chance of state inconsistencies
+- Simpler to understand and maintain
 
 ## Summary
 The goal is to maintain a codebase that is:
