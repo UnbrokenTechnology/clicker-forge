@@ -6,7 +6,7 @@ This document provides guidelines for maintaining clean, organized, and maintain
 ## Core Principles
 
 ### 1. Preserve Working Functionality
-- **Never remove or modify working code** unless it's necessary to fix a bug or implement a required feature
+- Remove or modify working code when replacing it with better code that maintains functionality completely, or when the code is no longer necessary due to improvements being made
 - Before making changes, ensure you understand what the existing code does
 - Test thoroughly after changes to ensure nothing breaks
 
@@ -17,17 +17,14 @@ When implementing new features or fixing bugs, follow these priorities:
 2. **Add new code** only when the feature is genuinely new and doesn't fit existing patterns
 3. **Create new modules/files/classes** only when:
    - The functionality is substantially different from existing modules
-   - The current file is becoming too large (>500 lines)
+   - The current file is becoming too large (>300 lines)
    - The new feature represents a distinct concern or domain
+   - Review the structure with the team to ensure there is no duplicative or overlapping functionality
 
 ### 3. Code Organization
 
 #### Module Structure
-The project uses a modular JavaScript architecture:
-- `gameState.js` - State management and persistence
-- `weapons.js` - Weapon generation and mechanics
-- `ui.js` - UI updates and user interactions
-- `main.js` - Game initialization
+The code should be self-documenting. When adding new modules, files, or classes, review the structure to ensure there is no duplicative or overlapping functionality.
 
 **When to add a new module:**
 - The feature represents a new major system (e.g., shop, upgrades, quests)
@@ -37,13 +34,19 @@ The project uses a modular JavaScript architecture:
 **When to extend existing modules:**
 - The feature builds on existing functionality
 - It fits naturally with the module's current responsibilities
-- The module won't become bloated (keep under 500 lines)
+- The module won't become bloated (keep under 300 lines)
 
 #### Function Guidelines
 - Keep functions small and focused (ideally under 50 lines)
+- Prefer PURE functions whenever possible - attempt to avoid mutating state during the function itself
 - Use descriptive names that clearly indicate purpose
 - Add comments only when the code's intent isn't immediately clear
 - Follow existing naming conventions in the codebase
+
+#### State Management
+- Prefer state managed in a clean way where any persistent data has one entry point
+- Avoid caching whenever possible
+- Keep state modifications explicit and predictable
 
 ### 4. Refactoring Approach
 
@@ -90,13 +93,11 @@ The project uses a modular JavaScript architecture:
 - **Single Responsibility**: Each function/module should do one thing well
 - **Consistent Style**: Match the existing code style and formatting
 - **Clear Intent**: Code should be self-documenting
-
-#### Avoid These Anti-Patterns
-- ❌ Creating helper scripts or workarounds instead of proper solutions
-- ❌ Duplicating existing functionality in a new place
-- ❌ Adding temporary fixes that should be permanent solutions
-- ❌ Leaving commented-out code in production
-- ❌ Adding excessive logging that should be debug-only
+- **Proper Solutions**: Create well-thought-out solutions rather than helper scripts or workarounds
+- **Single Source of Truth**: Avoid duplicating functionality across different parts of the codebase
+- **Permanent Fixes**: Implement lasting solutions rather than temporary patches
+- **Clean Production Code**: Remove commented-out code and excessive logging before committing
+- **Appropriate Logging**: Use logging thoughtfully for debugging purposes only
 
 ### 7. Testing and Validation
 
@@ -123,49 +124,32 @@ The project uses a modular JavaScript architecture:
 - Breaking changes (rare, but document thoroughly)
 
 #### Keep Documentation Minimal
-- Update README.md for major features
+- Update README.md for major features, ensuring all information remains correct and relevant based on the current codebase
 - Use inline comments sparingly and only for complex logic
 - Let the code speak for itself when possible
 
 ## Example Scenarios
 
 ### Scenario 1: Adding Click Progress Bar
-**Good Approach ✅**
+**Effective Approach:**
 - Update existing `handleForgeClick()` function in `ui.js`
 - Add progress tracking to existing repair state
 - Extend HTML with progress bar elements
 - Reuse existing CSS patterns for the loading bar
 
-**Bad Approach ❌**
-- Create a new `forgeProgress.js` module
-- Duplicate state management
-- Create completely new CSS from scratch
-- Add a separate progress tracking system
-
 ### Scenario 2: Fixing a Bug
-**Good Approach ✅**
+**Effective Approach:**
 - Identify the minimal code change needed
 - Add a flag or condition to prevent the bug
 - Test that existing functionality still works
 - Document why the change was needed (if not obvious)
 
-**Bad Approach ❌**
-- Rewrite the entire function
-- Change working parts of the code
-- Add complex workarounds
-- Fix multiple unrelated things at once
-
 ### Scenario 3: Adding a Shop System
-**Good Approach ✅**
+**Effective Approach:**
 - Create a new `shop.js` module (major new feature)
 - Integrate with existing `GameState` for purchases
 - Follow existing UI patterns in the HTML/CSS
 - Keep the API consistent with other modules
-
-**Bad Approach ❌**
-- Add shop logic to `weapons.js` or `ui.js`
-- Create a separate state management system
-- Use different patterns from the rest of the codebase
 
 ## Summary
 The goal is to maintain a codebase that is:
