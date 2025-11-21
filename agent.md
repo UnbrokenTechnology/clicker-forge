@@ -15,9 +15,10 @@ When implementing new features or fixing bugs, follow these priorities:
 
 1. **Update existing code** when it makes sense to extend or modify current functionality
 2. **Add new code** only when the feature is genuinely new and doesn't fit existing patterns
-3. **Create new modules/files/classes** only when:
+3. **Create new modules/files/classes** when:
    - The functionality is substantially different from existing modules
-   - The current file is becoming too large (>300 lines)
+   - Planning a new feature that would add 200+ lines of code
+   - The current file would exceed 300 lines with the new changes
    - The new feature represents a distinct concern or domain
    - Review the structure with the team to ensure there is no duplicative or overlapping functionality
 
@@ -26,15 +27,20 @@ When implementing new features or fixing bugs, follow these priorities:
 #### Module Structure
 The code should be self-documenting. When adding new modules, files, or classes, review the structure to ensure there is no duplicative or overlapping functionality.
 
+**File Size Guidelines:**
+- Plan new modules when a feature would add 200+ lines of code
+- Split existing files when they exceed 300 lines
+- Keep individual files focused and under 300 lines when possible
+
 **When to add a new module:**
 - The feature represents a new major system (e.g., shop, upgrades, quests)
-- The module would have 200+ lines of code
+- The new feature would add 200+ lines of code
 - The functionality is reusable across multiple parts of the game
 
 **When to extend existing modules:**
 - The feature builds on existing functionality
 - It fits naturally with the module's current responsibilities
-- The module won't become bloated (keep under 300 lines)
+- The changes won't push the module over 300 lines
 
 #### Function Guidelines
 - Keep functions small and focused (ideally under 50 lines)

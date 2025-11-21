@@ -17,7 +17,8 @@ const UI = (function() {
     let repairState = {
         isRepairing: false,
         progress: 0,
-        progressInterval: null
+        progressInterval: null,
+        weaponId: null // Track which weapon is being repaired
     };
 
     // Cache DOM elements
@@ -152,11 +153,16 @@ const UI = (function() {
 
         // If already repairing, speed up the process with clicks
         if (repairState.isRepairing) {
-            repairState.progress += REPAIR_CLICK_BOOST_MS;
-            elements.forgeIcon.classList.add('hammer-pulse');
-            setTimeout(() => {
-                elements.forgeIcon.classList.remove('hammer-pulse');
-            }, 200);
+            // Cap progress to not exceed base repair time
+            repairState.progress = Math.min(repairState.progress + REPAIR_CLICK_BOOST_MS, REPAIR_BASE_TIME_MS);
+            
+            // Only add animation if not already animating
+            if (!elements.forgeIcon.classList.contains('hammer-pulse')) {
+                elements.forgeIcon.classList.add('hammer-pulse');
+                setTimeout(() => {
+                    elements.forgeIcon.classList.remove('hammer-pulse');
+                }, 200);
+            }
             updateForgeProgress();
             return;
         }
@@ -169,6 +175,7 @@ const UI = (function() {
     function startRepair(weapon) {
         repairState.isRepairing = true;
         repairState.progress = 0;
+        repairState.weaponId = weapon.id; // Track which weapon is being repaired
         
         // Show progress bar
         elements.forgeProgressContainer.style.display = 'block';
@@ -192,6 +199,12 @@ const UI = (function() {
     function updateForgeProgress() {
         const progressPercent = Math.min((repairState.progress / REPAIR_BASE_TIME_MS) * 100, 100);
         elements.forgeProgressFill.style.width = progressPercent + '%';
+        
+        // Update ARIA attribute for accessibility
+        const progressBar = elements.forgeProgressFill.parentElement;
+        if (progressBar) {
+            progressBar.setAttribute('aria-valuenow', Math.round(progressPercent));
+        }
     }
 
     // Complete the repair process
@@ -205,6 +218,7 @@ const UI = (function() {
         // Reset repair state
         repairState.isRepairing = false;
         repairState.progress = 0;
+        repairState.weaponId = null;
 
         // Hide progress bar
         elements.forgeProgressContainer.style.display = 'none';
@@ -222,7 +236,7 @@ const UI = (function() {
             elements.forgeIcon.classList.remove('success-animation');
             elements.forgeStatus.textContent = 'Ready to repair';
             elements.forgeStatus.style.color = '#27ae60';
-        }, 1000);
+        }, 1500);
 
         // Update all UI
         updateStats();
