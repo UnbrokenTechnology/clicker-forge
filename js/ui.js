@@ -44,7 +44,7 @@ const UI = (function() {
 
         elements.weaponToRepair.innerHTML = `
             <div class="weapon-item">
-                <i class="fa-solid ${weapon.icon}"></i>
+                <i class="fa-duotone fa-regular ${weapon.icon}"></i>
                 <div>
                     <div class="weapon-name">${weapon.name}</div>
                     <div class="weapon-type">Condition: ${weapon.condition}% damaged</div>
@@ -66,14 +66,14 @@ const UI = (function() {
         elements.brokenWeaponsList.innerHTML = weapons.map(weapon => `
             <div class="broken-weapon-item ${weapon.id === selectedId ? 'selected' : ''}" data-weapon-id="${weapon.id}">
                 <div class="broken-weapon-info">
-                    <i class="fa-solid ${weapon.icon}"></i>
+                    <i class="fa-duotone fa-regular ${weapon.icon}"></i>
                     <div class="weapon-details">
                         <div class="weapon-name">${weapon.name}</div>
                         <div class="weapon-type">Condition: ${weapon.condition}% damaged</div>
                     </div>
                 </div>
                 <div>
-                    <i class="fa-solid fa-hand-pointer"></i>
+                    <i class="fa-duotone fa-regular fa-hand-pointer"></i>
                 </div>
             </div>
         `).join('');
@@ -102,7 +102,7 @@ const UI = (function() {
             const weaponDef = weaponTypes[type];
             return `
                 <div class="inventory-item">
-                    <i class="fa-solid ${weaponDef.icon}"></i>
+                    <i class="fa-duotone fa-regular ${weaponDef.icon}"></i>
                     <div class="item-name">${weaponDef.name}</div>
                     <div class="item-count">x${count}</div>
                 </div>
