@@ -92,6 +92,7 @@ header h1 {
 
 .forge-icon.repairing {
     animation: hammer-swing 0.5s ease-in-out infinite;
+    animation-fill-mode: both;
 }
 
 .forge-icon.hammer-pulse {
