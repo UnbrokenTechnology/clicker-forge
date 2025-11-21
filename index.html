@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clicker Forge - Blacksmith Simulator</title>
+    <script src="https://kit.fontawesome.com/245dc1cdc4.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <header>
+            <h1>Clicker Forge</h1>
+            <p class="subtitle">Repair broken weapons and forge your legacy</p>
+        </header>
+
+        <div class="main-content">
+            <div class="forge-section">
+                <div class="forge-icon-container">
+                    <i class="fa-solid fa-hammer-war forge-icon" id="forgeIcon"></i>
+                    <div class="forge-status">
+                        <p id="forgeStatus">Ready to repair</p>
+                    </div>
+                </div>
+                <div class="weapon-to-repair" id="weaponToRepair">
+                    <p>No broken weapon selected</p>
+                </div>
+            </div>
+
+            <div class="controls-section">
+                <button class="btn btn-primary" id="searchButton">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    Search for Broken Weapons
+                </button>
+                <div class="loading-bar-container" id="loadingBarContainer" style="display: none;">
+                    <div class="loading-bar">
+                        <div class="loading-bar-fill" id="loadingBarFill"></div>
+                    </div>
+                    <p class="loading-text" id="loadingText">Searching...</p>
+                </div>
+            </div>
+
+            <div class="stats-section">
+                <div class="stat-item">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                    <span>Repairs: <strong id="repairCount">0</strong></span>
+                </div>
+                <div class="stat-item">
+                    <i class="fa-solid fa-box"></i>
+                    <span>Broken Weapons: <strong id="brokenCount">0</strong></span>
+                </div>
+            </div>
+
+            <div class="inventory-section">
+                <h2>
+                    <i class="fa-solid fa-warehouse"></i>
+                    Inventory
+                </h2>
+                <div class="inventory-grid" id="inventoryGrid">
+                    <p class="empty-message">No repaired items yet</p>
+                </div>
+            </div>
+
+            <div class="broken-weapons-section">
+                <h2>
+                    <i class="fa-solid fa-toolbox"></i>
+                    Broken Weapons
+                </h2>
+                <div class="broken-weapons-list" id="brokenWeaponsList">
+                    <p class="empty-message">No broken weapons. Search for some!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts - load in order for module dependencies -->
+    <script src="js/gameState.js"></script>
+    <script src="js/weapons.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
