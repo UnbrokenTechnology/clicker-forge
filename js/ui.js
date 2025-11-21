@@ -5,6 +5,11 @@
 const UI = (function() {
     'use strict';
 
+    // Constants for repair timing and progress
+    const REPAIR_BASE_TIME_MS = 3000; // 3 seconds base repair time
+    const REPAIR_CLICK_BOOST_MS = 100; // Each click adds 100ms worth of progress
+    const REPAIR_UPDATE_INTERVAL_MS = 50; // Update progress every 50ms
+
     // DOM element cache
     let elements = {};
     
@@ -12,9 +17,7 @@ const UI = (function() {
     let repairState = {
         isRepairing: false,
         progress: 0,
-        progressInterval: null,
-        baseRepairTime: 3000, // 3 seconds base time
-        clickBoost: 100 // each click adds 100ms worth of progress
+        progressInterval: null
     };
 
     // Cache DOM elements
@@ -149,7 +152,7 @@ const UI = (function() {
 
         // If already repairing, speed up the process with clicks
         if (repairState.isRepairing) {
-            repairState.progress += repairState.clickBoost;
+            repairState.progress += REPAIR_CLICK_BOOST_MS;
             elements.forgeIcon.classList.add('hammer-pulse');
             setTimeout(() => {
                 elements.forgeIcon.classList.remove('hammer-pulse');
@@ -174,20 +177,20 @@ const UI = (function() {
         elements.forgeStatus.style.color = '#f39c12';
         elements.forgeIcon.classList.add('repairing');
 
-        // Update progress every 50ms
+        // Update progress at regular intervals
         repairState.progressInterval = setInterval(() => {
-            repairState.progress += 50; // Add 50ms of progress
+            repairState.progress += REPAIR_UPDATE_INTERVAL_MS;
             updateForgeProgress();
 
-            if (repairState.progress >= repairState.baseRepairTime) {
+            if (repairState.progress >= REPAIR_BASE_TIME_MS) {
                 completeRepair(weapon);
             }
-        }, 50);
+        }, REPAIR_UPDATE_INTERVAL_MS);
     }
 
     // Update forge progress bar
     function updateForgeProgress() {
-        const progressPercent = Math.min((repairState.progress / repairState.baseRepairTime) * 100, 100);
+        const progressPercent = Math.min((repairState.progress / REPAIR_BASE_TIME_MS) * 100, 100);
         elements.forgeProgressFill.style.width = progressPercent + '%';
     }
 
